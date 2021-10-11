@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ToDo List</title>
+    <link rel="stylesheet" href="./css/style.css">
+    <script src="https://kit.fontawesome.com/0cc2f1ffd6.js" crossorigin="anonymous"></script>
+</head>
+
+<body>
+    <div class="container">
+        <div class="content">
+            <div class="flex">
+                <button type="submit" id="create-task"><i class="fas fa-calendar-plus"></i> Create Task</button>
+            </div>
+            <div class="tasks"></div>
+        </div>
+    </div>
+    <div class="task-container">
+        <div class="task-form">
+            <input type="text" id="task-name" placeholder="Task Name" required>
+            <textarea id="deatils" cols="15" rows="4" placeholder="details"></textarea>
+            <label>Start Date:</label> <input type="date" name="date" id="start-date" required>
+            <input type="time" id="start-appt" required>
+            <label>End Date:</label><input type="date" name="date" id="end-date">
+            <input type="time" id="end-appt">
+            <input type="submit" id="add-task" value="ADD TASK">
+        </div>
+        <!--  min="2018-01-01" -->
+    </div>
+    <script src="./js/index.js"></script>
+</body>
+
+</html>

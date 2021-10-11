@@ -1,0 +1,109 @@
+*{
+    padding: 0;
+    margin: 0;
+}
+textarea {
+    resize: none;
+}
+.container{
+    background: lightgray;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+}
+.content{
+    width: 70%;
+}
+.flex{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 10vh;
+}
+.flex>*{
+    margin:1rem
+}
+
+#create-task{
+    background: darksalmon;
+    padding: 1vh 25%;
+    cursor: pointer;
+    transition: all .3s ease;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: medium;
+}
+#create-task:hover{
+    background: rgb(216, 98, 58);
+}
+.lists{
+    background: white;
+}
+.task-container{
+    display: none;
+}
+.task-container-change{
+    display: flex;
+    justify-content: center;
+    position: absolute;
+    width: 100%;
+    top: 15vmin;
+    animation: pop 1s ease;
+}
+
+.task-form{
+    display: flex;
+    flex-direction: column;
+    border: 3px solid black;
+    border-radius: 3px;
+    padding: 1.5vw;
+    background: white;
+}
+.task-form>*{
+    margin-top: 1vh;
+    /* width: 120%; */
+}
+#add-task{
+    cursor: pointer;
+    background: thistle;
+}
+.tasks{
+    min-height: 90vh;
+    background: white;
+    border:3px solid black;
+}
+.task{
+    display: flex;
+    flex-direction: column;
+    padding: 1vw;
+    border: 2px solid slategray;
+}
+.task>*{
+    padding: .5vw;
+}
+.task>div:first-child{
+    display: flex;
+    align-items: center;
+}
+.task>div:first-child>div{
+    padding-left: 1rem;
+    cursor: pointer;
+}
+.task>div:first-child>div:hover{
+    color: slategray;
+}
+.line-throw{
+    text-decoration-line: line-through;
+}
+@keyframes pop {
+    from{
+        transform: scale(0);
+    }
+    to{
+        transform: scale(1);
+    }
+}
+@media (max-width:700px) {
+    .task-container-change{
+        top: 30vmin;
+    }
+}
