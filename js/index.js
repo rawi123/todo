@@ -110,7 +110,7 @@ function addTaskToContainer(obj) {//object is the task object
 
 function checkInputValidation() {
     if (taskName.value.length === 0 || startDate.value.length === 0) {
-        line(taskName.value.length === 0 ? (taskName, red) : (startDate, "red"))
+        line((taskName.value.length === 0 ? taskName : startDate),"red")
         return false
     }
     return true;
