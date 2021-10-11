@@ -12,7 +12,15 @@ if (!localStorage.getItem("id")) {
     localStorage.setItem("id", 0)
     localStorage.setItem("tasks", JSON.stringify([]))
 }
+
 const tasksStorage = JSON.parse(localStorage.getItem("tasks"))
+let taskToDelete;
+
+function displayAllTasks(){
+    for (const singleTask of tasksStorage){
+        buildTaskHtml(singleTask)
+    }
+}
 
 function dateLegalisation() {
     const today = new Date(),
@@ -105,8 +113,10 @@ function checkInputValidation() {
     return true;
 }
 
-function updateLocalStorage() {
-    localStorage.setItem("id", Number(localStorage.getItem("id")) + 1)
+function updateLocalStorage(addId=true) {
+    if(addId){
+        localStorage.setItem("id", Number(localStorage.getItem("id")) + 1)
+    }
     localStorage.setItem("tasks", JSON.stringify(tasksStorage))
 }
 
@@ -121,7 +131,7 @@ async function lineRed(elem) {
 }
 
 function buildTaskHtml(obj) {
-    console.log(obj);
+
     const div = document.createElement("div"),
         h2 = document.createElement("h2"),
         h3startTime=document.createElement("h3"),
@@ -135,7 +145,10 @@ function buildTaskHtml(obj) {
     deleteTask.innerHTML=`<i class="fas fa-trash-alt"></i>`
     active.innerHTML=`<i class="far fa-check-circle"></i>`
     active.addEventListener("click",missionDone)
-    deleteTask.addEventListener("click",deleteThisTask)
+    deleteTask.addEventListener("click",function (){
+        taskToDelete=obj;
+        deleteThisTask(this)
+    })
     taskNameDiv.append(h2,active,deleteTask)
     
     div.classList.add("task")
@@ -167,8 +180,10 @@ function missionDone(){
     this.parentElement.parentElement.classList.toggle("line-throw")
 }
 
-function deleteThisTask(){
-    this.parentElement.parentElement.remove()
+function deleteThisTask(item){
+    item.parentElement.parentElement.remove()
+    tasksStorage.splice(tasksStorage.indexOf(taskToDelete),1)
+    updateLocalStorage(false)
 }
 
 function createSingleElemenet(type,text){
@@ -176,6 +191,7 @@ function createSingleElemenet(type,text){
     elem.innerText=text
     return elem
 }
+displayAllTasks()
 dateLegalisation()
 addListners()
 
