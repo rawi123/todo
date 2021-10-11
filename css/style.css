@@ -58,6 +58,11 @@ textarea {
     background: none;
     border: none;
     cursor: pointer;
+    transition: all .3s ease;
+    color: rgba(153, 13, 13, 0.623);
+}
+.exit:hover{
+    transform: rotate(180deg) scale(1.1);
 }
 .task-form{
     display: flex;
