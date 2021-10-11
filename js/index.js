@@ -8,14 +8,18 @@ const createTask = document.querySelector("#create-task"),
     taskContainer = document.querySelector(".task-container"),
     addTask = document.querySelector("#add-task"),
     tasks = document.querySelector(".tasks"),
-    exit=document.querySelector(".exit"),
-    deleteAllTasks=document.querySelector(".delete-all");
+    exit = document.querySelector(".exit"),
+    deleteAllTasksContainer = document.querySelector(".delete-all"),
+    deleteAllTasks = document.querySelector(".fa-calendar-times"),
+    recoverLast = document.querySelector(".fa-undo");
 if (!localStorage.getItem("id")) {
     localStorage.setItem("id", 0)
     localStorage.setItem("tasks", JSON.stringify([]))
+    localStorage.setItem("recover", JSON.stringify([]))
 }
 
-const tasksStorage = JSON.parse(localStorage.getItem("tasks"))
+const tasksStorage = JSON.parse(localStorage.getItem("tasks")),
+    recoverStorage = JSON.parse(localStorage.getItem("recover"))
 let taskToDelete;
 
 function displayAllTasks() {
@@ -43,11 +47,12 @@ function dateLegalisation() {
     endDate.setAttribute("min", todayDate);
 }
 
-function deleteAll(){
-    tasksStorage.length=0;
+function deleteAll() {
+    recoverStorage.push(...tasksStorage)
+    tasksStorage.length = 0;
     updateLocalStorage();
-    [...tasks.children].map(val=>{
-        if(val!==deleteAllTasks)
+    [...tasks.children].map(val => {
+        if (val !== deleteAllTasksContainer)
             val.remove()
     })
 }
@@ -56,8 +61,18 @@ function addListners() {
     createTask.addEventListener("click", createTaskFunc)
     startDate.addEventListener("blur", checkEndDate)
     addTask.addEventListener("click", taskAddComplete)
-    exit.addEventListener("click",createTaskFunc)
-    deleteAllTasks.addEventListener("click",deleteAll)
+    exit.addEventListener("click", createTaskFunc)
+    deleteAllTasks.addEventListener("click", deleteAll)
+    recoverLast.addEventListener("click", recoverLastTask)
+}
+
+function recoverLastTask() {
+    if (recoverStorage.length > 0) {
+        const recover = recoverStorage.pop()
+        tasksStorage.push(recover)
+        buildTaskHtml(recover)
+    }
+    updateLocalStorage()
 }
 
 function checkEndDate() {//set date min to be as start date and if clicked on end date changed it then went to start check validation
@@ -153,6 +168,7 @@ function updateLocalStorage(addId = true) {
         localStorage.setItem("id", Number(localStorage.getItem("id")) + 1)
     }
     localStorage.setItem("tasks", JSON.stringify(tasksStorage))
+    localStorage.setItem("recover", JSON.stringify(recoverStorage))
 }
 
 async function line(elem, color) {
@@ -165,32 +181,45 @@ async function line(elem, color) {
     })
 }
 
-function buildTaskHtml(obj, order = true) {
-
+function createFirstLine(taskNameDiv, deleteActiveDiv, obj) {
     const h2 = document.createElement("h2"),
-        div = document.createElement("div"),
-        taskNameDiv = document.createElement("div"),
-        otherDiv = document.createElement("div"),
+        permDel = document.createElement("div"),
         active = document.createElement("div"),
-        deleteTask = document.createElement("div"),
-        deleteActiveDiv = document.createElement("div"),
-        startDiv = document.createElement("div"),
-        endDiv = document.createElement("div"),
-        arr = [];
+        deleteTask = document.createElement("div");
 
     h2.innerText = "Task name: " + obj.taskName
 
+    permDel.innerHTML = `<i class="fas fa-exclamation-triangle"></i>`
     deleteTask.innerHTML = `<i class="fas fa-trash-alt"></i>`
     active.innerHTML = `<i class="far fa-check-circle"></i>`
-    deleteActiveDiv.append(active, deleteTask)
+
+    deleteActiveDiv.append(active, deleteTask, permDel)
     deleteActiveDiv.style.display = "flex"
     active.addEventListener("click", missionDone)
     deleteTask.addEventListener("click", function () {
         taskToDelete = obj;
         deleteThisTask(this)
     })
+    permDel.addEventListener("click", function () {
+        taskToDelete = obj;
+        deletePerm(this)
+    })
 
     taskNameDiv.append(h2, deleteActiveDiv)
+}
+
+function buildTaskHtml(obj, order = true) {
+
+    const div = document.createElement("div"),
+        taskNameDiv = document.createElement("div"),
+        otherDiv = document.createElement("div"),
+        deleteActiveDiv = document.createElement("div"),
+        startDiv = document.createElement("div"),
+        endDiv = document.createElement("div"),
+        arr = [];
+
+    createFirstLine(taskNameDiv, deleteActiveDiv, obj)
+
 
     if (obj.deatils) {
         arr.push(createSingleElemenet("h3", ("details: " + obj.deatils)))
@@ -208,6 +237,7 @@ function buildTaskHtml(obj, order = true) {
     if (obj.endDate) {
         endDiv.append(createSingleElemenet("h3", ("End Date: " + obj.endDate)))
     }
+    
     arr.push(startDiv, endDiv)
 
     otherDiv.append(...arr)
@@ -221,6 +251,13 @@ function buildTaskHtml(obj, order = true) {
         line(div, "green")
     }
 
+}
+
+function deletePerm(item) {
+    console.log(123);
+    item.parentElement.parentElement.parentElement.remove()
+    tasksStorage.splice(tasksStorage.indexOf(taskToDelete), 1)
+    updateLocalStorage(false)
 }
 
 function sortTasks() {
@@ -247,6 +284,7 @@ function missionDone() {
 function deleteThisTask(item) {
     item.parentElement.parentElement.parentElement.remove()
     tasksStorage.splice(tasksStorage.indexOf(taskToDelete), 1)
+    recoverStorage.push(taskToDelete)
     updateLocalStorage(false)
 }
 

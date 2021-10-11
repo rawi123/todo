@@ -24,10 +24,10 @@ textarea {
     margin:1rem
 }
 .delete-all{
-    position: absolute;
-    right: 0;
-    padding: 1vh;
+    align-self: flex-end;
     cursor: pointer;
+    z-index: 10;
+    background: white;
 }
 
 #create-task{
@@ -82,7 +82,6 @@ textarea {
 }
 .task-form>*{
     margin-top: 1vh;
-    /* width: 120%; */
 }
 #add-task{
     cursor: pointer;
@@ -126,16 +125,44 @@ textarea {
     padding-left: 1rem;
     cursor: pointer;
 }
-.task>div:first-child>div:nth-child(2)>div:first-child{
+.task>div:first-child>div:nth-child(2)>div:first-child,
+.task>div:first-child>div:nth-child(2)>div:nth-child(2){
     margin-right: 1vw;
 }
-.task>div:first-child>div:nth-child(2)>div:first-child:hover,
-.task>div:first-child>div:nth-child(2)>div:nth-child(2):hover,
-.delete-all:hover{
+.task>div:first-child>div:nth-child(2)>div>*:hover,
+.delete-all>*:hover{
     color: slategray;
 }
 .line-throw{
     text-decoration-line: line-through;
+}
+.fas:after{
+    position: absolute;
+    color: orangered;
+    right: 50%;
+    background: white;
+    top: 100%;
+    transform: scale(0);
+    overflow: hidden;
+    z-index: 1;
+    font-size: .8rem;
+    transition: all .3s ease;
+}
+.fas:hover::after{
+    transform: scale(1);
+    border: 1px solid black;
+}
+.fas{
+    position: relative;
+}
+.fa-undo:after{
+    content: "recover last";
+}
+.fa-calendar-times:after{
+    content: "delete all";
+}
+.fa-exclamation-triangle::after{
+    content: "delete permanently";
 }
 @keyframes pop {
     from{
