@@ -6,7 +6,6 @@ const createTask = document.querySelector("#create-task"),
     endDate = document.querySelector("#end-date"),
     endtime = document.querySelector("#end-appt"),
     taskContainer = document.querySelector(".task-container"),
-    addTask = document.querySelector("#add-task"),
     tasks = document.querySelector(".tasks"),
     exit = document.querySelector(".exit"),
     deleteAllTasksContainer = document.querySelector(".delete-all"),
@@ -20,7 +19,8 @@ if (!localStorage.getItem("id")) {
 
 const tasksStorage = JSON.parse(localStorage.getItem("tasks")),
     recoverStorage = JSON.parse(localStorage.getItem("recover"))
-let taskToDelete;
+let taskToDelete,
+    addTask = document.querySelector("#add-task");
 
 function displayAllTasks() {
     for (const singleTask of tasksStorage) {
@@ -59,9 +59,10 @@ function deleteAll() {
 
 function addListners() {
     createTask.addEventListener("click", createTaskFunc)
-    startDate.addEventListener("blur", checkEndDate)
+    startDate.addEventListener("blur", function () { endDate.setAttribute("min", startDate.value) })
     addTask.addEventListener("click", taskAddComplete)
     exit.addEventListener("click", createTaskFunc)
+    exit.addEventListener("click", clearInput)
     deleteAllTasks.addEventListener("click", deleteAll)
     recoverLast.addEventListener("click", recoverLastTask)
 }
@@ -77,7 +78,6 @@ function recoverLastTask() {
 
 function checkEndDate() {//set date min to be as start date and if clicked on end date changed it then went to start check validation
     let startBiggerThanEnd = false;
-    endDate.setAttribute("min", startDate.value)
 
     if (endDate.value.length === 0 && endtime.value.length > 0) {
         line(endDate, "red")
@@ -93,7 +93,11 @@ function checkEndDate() {//set date min to be as start date and if clicked on en
         else if (returnSlicedNumber(endDate.value, 8, 10) < returnSlicedNumber(startDate.value, 8, 10)) {
             startBiggerThanEnd = true
         }
-        else if (startTime.value.length > 0 && startDate.value === endDate.value) {
+        else if (startDate.value === endDate.value) {
+            if (startTime.value.length === 0) {
+                line(startTime, "red")
+                return false
+            }
             if (returnSlicedNumber(endtime.value, 0, 2) < returnSlicedNumber(startTime.value, 0, 2)) {
                 startBiggerThanEnd = true
             }
@@ -101,17 +105,19 @@ function checkEndDate() {//set date min to be as start date and if clicked on en
                 && (returnSlicedNumber(endtime.value, 3, 5) <= returnSlicedNumber(startTime.value, 3, 5))) {
                 startBiggerThanEnd = true;
             }
+            if (startBiggerThanEnd) {
+                endDate.value = startDate.value
+                endtime.value = startTime.value
+                line(endDate, "red")
+                line(endtime, "red")
+                return false;
+            }
         }
-        if (startBiggerThanEnd) {
-            endDate.value = startDate.value
-            endtime.value = startTime.value
-            line(endDate, "red")
-            line(endtime, "red")
-            return false;
-        }
+
     }
     return true;
 }
+
 function returnSlicedNumber(elem, from, to) {
     return Number(elem.slice(from, to))
 }
@@ -120,14 +126,32 @@ function createTaskFunc() {
     taskContainer.classList.toggle("task-container-change")
 }
 
-function taskAddComplete() {
-    if (checkEndDate() && checkInputValidation()) {
-        const obj = createObjectFromForm()
-        tasksStorage.push(obj)
+function taskAddComplete(obj = null, item = null, update = false) {
+    if (checkInputValidation() && checkEndDate()) {
+        if (update) {
+            tasksStorage.splice(tasksStorage.indexOf(obj), 1)
+            obj = createObjectFromForm()
+            tasksStorage.push(obj)
+            item.remove()
+        }
+        else {
+            obj = createObjectFromForm()
+            tasksStorage.push(obj)
+        }
         updateLocalStorage()
-        addTaskToContainer(obj)
+        buildTaskHtml(obj)
         createTaskFunc()
+        clearInput()
+        return true;
     }
+    if (update) return false
+}
+
+function clearInput() {
+    [...taskContainer.children[0].children].map(val => {
+        if (val !== addTask)
+            val.value = ""
+    })
 }
 
 function createObjectFromForm() {
@@ -149,10 +173,6 @@ function createObjectFromForm() {
         obj.endtime = endtime.value
     }
     return obj;
-}
-
-function addTaskToContainer(obj) {//object is the task object
-    buildTaskHtml(obj)
 }
 
 function checkInputValidation() {
@@ -185,27 +205,56 @@ function createFirstLine(taskNameDiv, deleteActiveDiv, obj) {
     const h2 = document.createElement("h2"),
         permDel = document.createElement("div"),
         active = document.createElement("div"),
-        deleteTask = document.createElement("div");
+        deleteTask = document.createElement("div"),
+        edit = document.createElement("div");
 
     h2.innerText = "Task name: " + obj.taskName
 
+    edit.innerHTML = `<i class="fas fa-edit"></i>`
     permDel.innerHTML = `<i class="fas fa-exclamation-triangle"></i>`
     deleteTask.innerHTML = `<i class="fas fa-trash-alt"></i>`
     active.innerHTML = `<i class="far fa-check-circle"></i>`
 
-    deleteActiveDiv.append(active, deleteTask, permDel)
     deleteActiveDiv.style.display = "flex"
+
     active.addEventListener("click", missionDone)
     deleteTask.addEventListener("click", function () {
         taskToDelete = obj;
-        deleteThisTask(this)
+        deleteThisTask(this, true)
     })
     permDel.addEventListener("click", function () {
         taskToDelete = obj;
-        deletePerm(this)
+        deleteThisTask(this, false)
+    })
+    edit.addEventListener("click", function () {
+        editTask(this, obj)
     })
 
+    deleteActiveDiv.append(active, edit, deleteTask, permDel)
     taskNameDiv.append(h2, deleteActiveDiv)
+}
+
+function editTask(item, obj) {//step 1
+    createTaskFunc()
+
+    taskName.value = obj.taskName || ""
+    deatils.value = obj.deatils || ""
+    startDate.value = obj.startDate || ""
+    startTime.value = obj.startTime || ""
+    endDate.value = obj.endDate || ""
+    endtime.value = obj.endtime || ""
+
+    function addNewListner() {
+        let new_element = addTask.cloneNode(true);
+        addTask.parentNode.replaceChild(new_element, addTask);
+        addTask = new_element
+        addTask.addEventListener("click", function () {
+            taskAddComplete(obj, item.parentElement.parentElement.parentElement, true)
+        })
+    }
+
+    addNewListner()
+
 }
 
 function buildTaskHtml(obj, order = true) {
@@ -237,7 +286,7 @@ function buildTaskHtml(obj, order = true) {
     if (obj.endDate) {
         endDiv.append(createSingleElemenet("h3", ("End Date: " + obj.endDate)))
     }
-    
+
     arr.push(startDiv, endDiv)
 
     otherDiv.append(...arr)
@@ -253,21 +302,32 @@ function buildTaskHtml(obj, order = true) {
 
 }
 
-function deletePerm(item) {
-    console.log(123);
-    item.parentElement.parentElement.parentElement.remove()
-    tasksStorage.splice(tasksStorage.indexOf(taskToDelete), 1)
-    updateLocalStorage(false)
-}
-
 function sortTasks() {
     tasksStorage.sort((a, b) => {
-        if (b.startDate > a.startDate) {
-            return 1
+        bYear = returnSlicedNumber(b.startDate, 0, 4);
+        bMm = returnSlicedNumber(b.startDate, 5, 7);
+        bDd = returnSlicedNumber(b.startDate, 8, 10);
+
+        //
+        aYear = returnSlicedNumber(a.startDate, 0, 4);
+        aMm = returnSlicedNumber(a.startDate, 5, 7);
+        aDd = returnSlicedNumber(a.startDate, 8, 10);
+        if (startTime.value.length > 0) {
+            bHr = returnSlicedNumber(b.startTime, 0, 2);
+            bMin = returnSlicedNumber(b.startTime, 3, 5);
+            aHr = returnSlicedNumber(a.startTime, 0, 2);
+            aMin = returnSlicedNumber(a.startTime, 3, 5);
         }
+        //
+        if (bYear > aYear) { return 1 }
+        else if (bYear === aYear && bMm > aMm) { return 1 }
+        else if (bYear === aYear && bMm === aMm && bDd > aDd) { return 1 }
+        else if (bYear === aYear && bMm > aMm && bDd === aDd && bHr > aHr) { return 1 }
+        else if (bYear === aYear && bMm > aMm && bDd === aDd && bHr === aHr && bMin > aMin) { return 1 }
+        else if (bYear === aYear && bMm > aMm && bDd === aDd && bHr === aHr && bMin === aMin) { return 0 }
         return -1
     })
-
+    
     let len = tasksStorage.length;
     tasksStorage.map(val => {
         const item = document.querySelector(`[data-id="${val.id}"]`);
@@ -281,10 +341,12 @@ function missionDone() {
     this.parentElement.parentElement.parentElement.classList.toggle("line-throw")
 }
 
-function deleteThisTask(item) {
+function deleteThisTask(item, recoverOption) {
     item.parentElement.parentElement.parentElement.remove()
     tasksStorage.splice(tasksStorage.indexOf(taskToDelete), 1)
-    recoverStorage.push(taskToDelete)
+    if (recoverOption) {
+        recoverStorage.push(taskToDelete)
+    }
     updateLocalStorage(false)
 }
 

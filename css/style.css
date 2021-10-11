@@ -125,8 +125,7 @@ textarea {
     padding-left: 1rem;
     cursor: pointer;
 }
-.task>div:first-child>div:nth-child(2)>div:first-child,
-.task>div:first-child>div:nth-child(2)>div:nth-child(2){
+.task>div:first-child>div:nth-child(2)>div>*{
     margin-right: 1vw;
 }
 .task>div:first-child>div:nth-child(2)>div>*:hover,
@@ -163,6 +162,12 @@ textarea {
 }
 .fa-exclamation-triangle::after{
     content: "delete permanently";
+}
+.fa-trash-alt:after{
+    content:"delete";
+}
+.fa-edit:after{
+    content: "edit";
 }
 @keyframes pop {
     from{
