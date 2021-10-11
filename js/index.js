@@ -7,7 +7,8 @@ const createTask = document.querySelector("#create-task"),
     endtime = document.querySelector("#end-appt"),
     taskContainer = document.querySelector(".task-container"),
     addTask = document.querySelector("#add-task"),
-    tasks = document.querySelector(".tasks");
+    tasks = document.querySelector(".tasks"),
+    exit=document.querySelector(".exit");
 if (!localStorage.getItem("id")) {
     localStorage.setItem("id", 0)
     localStorage.setItem("tasks", JSON.stringify([]))
@@ -41,32 +42,52 @@ function dateLegalisation() {
     endDate.setAttribute("min", todayDate);
 }
 
-
 function addListners() {
     createTask.addEventListener("click", createTaskFunc)
     startDate.addEventListener("blur", checkEndDate)
     addTask.addEventListener("click", taskAddComplete)
+    exit.addEventListener("click",createTaskFunc)
 }
 
 function checkEndDate() {//set date min to be as start date and if clicked on end date changed it then went to start check validation
     let startBiggerThanEnd = false;
-    endDate.setAttribute("min", this.value)
+    endDate.setAttribute("min", startDate.value)
+
+    if (endDate.value.length === 0 && endtime.value.length > 0) {
+        line(endDate, "red")
+        return false
+    }
     if (endDate.value.length > 0) {
-        if (Number(endDate.value.slice(0, 4)) < Number(this.value.slice(0, 4))) {
+        if (returnSlicedNumber(endDate.value, 0, 4) < returnSlicedNumber(startDate.value, 0, 4)) {
             startBiggerThanEnd = true
         }
-        else if (Number(endDate.value.slice(5, 7)) < Number(this.value.slice(5, 7))) {
+        else if (returnSlicedNumber(endDate.value, 5, 7) < returnSlicedNumber(startDate.value, 5, 7)) {
             startBiggerThanEnd = true
         }
-        else if (Number(endDate.value.slice(8, 10)) < Number(this.value.slice(8, 10))) {
+        else if (returnSlicedNumber(endDate.value, 8, 10) < returnSlicedNumber(startDate.value, 8, 10)) {
             startBiggerThanEnd = true
+        }
+        else if (startTime.value.length > 0 && startDate.value === endDate.value) {
+            if (returnSlicedNumber(endtime.value, 0, 2) < returnSlicedNumber(startTime.value, 0, 2)) {
+                startBiggerThanEnd = true
+            }
+            else if ((returnSlicedNumber(endtime.value, 0, 2) === returnSlicedNumber(startTime.value, 0, 2))
+                && (returnSlicedNumber(endtime.value, 3, 5) <= returnSlicedNumber(startTime.value, 3, 5))) {
+                startBiggerThanEnd = true;
+            }
         }
         if (startBiggerThanEnd) {
-            startBiggerThanEnd = false
-            endDate.value = this.value
+            endDate.value = startDate.value
+            endtime.value = startTime.value
             line(endDate, "red")
+            line(endtime, "red")
+            return false;
         }
     }
+    return true;
+}
+function returnSlicedNumber(elem, from, to) {
+    return Number(elem.slice(from, to))
 }
 
 function createTaskFunc() {
@@ -74,7 +95,7 @@ function createTaskFunc() {
 }
 
 function taskAddComplete() {
-    if (checkInputValidation()) {
+    if (checkEndDate() && checkInputValidation()) {
         const obj = createObjectFromForm()
         tasksStorage.push(obj)
         updateLocalStorage()
@@ -110,7 +131,7 @@ function addTaskToContainer(obj) {//object is the task object
 
 function checkInputValidation() {
     if (taskName.value.length === 0 || startDate.value.length === 0) {
-        line((taskName.value.length === 0 ? taskName : startDate),"red")
+        line((taskName.value.length === 0 ? taskName : startDate), "red")
         return false
     }
     return true;
@@ -135,21 +156,23 @@ async function line(elem, color) {
 
 function buildTaskHtml(obj, order = true) {
 
-    const div = document.createElement("div"),
-        h2 = document.createElement("h2"),
+    const h2 = document.createElement("h2"),
+        div = document.createElement("div"),
         taskNameDiv = document.createElement("div"),
         otherDiv = document.createElement("div"),
         active = document.createElement("div"),
         deleteTask = document.createElement("div"),
-        deleteActiveDiv=document.createElement("div"),
+        deleteActiveDiv = document.createElement("div"),
+        startDiv = document.createElement("div"),
+        endDiv = document.createElement("div"),
         arr = [];
 
     h2.innerText = "Task name: " + obj.taskName
 
     deleteTask.innerHTML = `<i class="fas fa-trash-alt"></i>`
     active.innerHTML = `<i class="far fa-check-circle"></i>`
-    deleteActiveDiv.append(active,deleteTask)
-    deleteActiveDiv.style.display="flex"
+    deleteActiveDiv.append(active, deleteTask)
+    deleteActiveDiv.style.display = "flex"
     active.addEventListener("click", missionDone)
     deleteTask.addEventListener("click", function () {
         taskToDelete = obj;
@@ -162,18 +185,19 @@ function buildTaskHtml(obj, order = true) {
         arr.push(createSingleElemenet("h3", ("details: " + obj.deatils)))
     }
     if (obj.startTime) {
-        arr.push(createSingleElemenet("h3", ("Start Time: " + obj.startTime)))
+        startDiv.append(createSingleElemenet("h3", ("Start Time: " + obj.startTime)))
     }
 
-    arr.push(createSingleElemenet("h3", ("Start Date: " + obj.startDate)))
+    startDiv.append(createSingleElemenet("h3", ("Start Date: " + obj.startDate)))
 
+    if (obj.endtime) {
+        endDiv.append(createSingleElemenet("h3", ("End Time:" + obj.endtime)))
+    }
 
     if (obj.endDate) {
-        arr.push(createSingleElemenet("h3", ("End Date: " + obj.endDate)))
+        endDiv.append(createSingleElemenet("h3", ("End Date: " + obj.endDate)))
     }
-    if (obj.endtime) {
-        arr.push(createSingleElemenet("h3", ("End Time:" + obj.endtime)))
-    }
+    arr.push(startDiv, endDiv)
 
     otherDiv.append(...arr)
     div.classList.add("task")
@@ -206,7 +230,7 @@ function sortTasks() {
 
 function missionDone() {
     this.innerHTML = this.innerHTML == `<i class="fas fa-check-circle" aria-hidden="true"></i>` ? `<i class="far fa-check-circle"></i>` : `<i class="fas fa-check-circle"></i>`
-    this.parentElement.parentElement.classList.toggle("line-throw")
+    this.parentElement.parentElement.parentElement.classList.toggle("line-throw")
 }
 
 function deleteThisTask(item) {
