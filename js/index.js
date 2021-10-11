@@ -210,7 +210,7 @@ function missionDone() {
 }
 
 function deleteThisTask(item) {
-    item.parentElement.parentElement.remove()
+    item.parentElement.parentElement.parentElement.remove()
     tasksStorage.splice(tasksStorage.indexOf(taskToDelete), 1)
     updateLocalStorage(false)
 }
