@@ -8,7 +8,8 @@ const createTask = document.querySelector("#create-task"),
     taskContainer = document.querySelector(".task-container"),
     addTask = document.querySelector("#add-task"),
     tasks = document.querySelector(".tasks"),
-    exit=document.querySelector(".exit");
+    exit=document.querySelector(".exit"),
+    deleteAllTasks=document.querySelector(".delete-all");
 if (!localStorage.getItem("id")) {
     localStorage.setItem("id", 0)
     localStorage.setItem("tasks", JSON.stringify([]))
@@ -42,11 +43,21 @@ function dateLegalisation() {
     endDate.setAttribute("min", todayDate);
 }
 
+function deleteAll(){
+    tasksStorage.length=0;
+    updateLocalStorage();
+    [...tasks.children].map(val=>{
+        if(val!==deleteAllTasks)
+            val.remove()
+    })
+}
+
 function addListners() {
     createTask.addEventListener("click", createTaskFunc)
     startDate.addEventListener("blur", checkEndDate)
     addTask.addEventListener("click", taskAddComplete)
     exit.addEventListener("click",createTaskFunc)
+    deleteAllTasks.addEventListener("click",deleteAll)
 }
 
 function checkEndDate() {//set date min to be as start date and if clicked on end date changed it then went to start check validation

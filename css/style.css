@@ -23,6 +23,12 @@ textarea {
 .flex>*{
     margin:1rem
 }
+.delete-all{
+    position: absolute;
+    right: 0;
+    padding: 1vh;
+    cursor: pointer;
+}
 
 #create-task{
     background: darksalmon;
@@ -55,6 +61,7 @@ textarea {
     left: 0;
     margin: 0 !important;
     margin-left: .3vw !important;
+    margin-top: .3vh !important;
     background: none;
     border: none;
     cursor: pointer;
@@ -80,6 +87,10 @@ textarea {
 #add-task{
     cursor: pointer;
     background: thistle;
+    transition: all .3s ease;
+}
+#add-task:hover{
+    background: rosybrown;
 }
 .tasks{
     display: flex;
@@ -87,6 +98,7 @@ textarea {
     min-height: 90vh;
     background: white;
     border:3px solid black;
+    position: relative;
 }
 .task{
     padding: 1vh;
@@ -118,7 +130,8 @@ textarea {
     margin-right: 1vw;
 }
 .task>div:first-child>div:nth-child(2)>div:first-child:hover,
-.task>div:first-child>div:nth-child(2)>div:nth-child(2):hover{
+.task>div:first-child>div:nth-child(2)>div:nth-child(2):hover,
+.delete-all:hover{
     color: slategray;
 }
 .line-throw{
