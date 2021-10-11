@@ -67,11 +67,15 @@ textarea {
     background: thistle;
 }
 .tasks{
+    display: flex;
+    flex-direction: column;
     min-height: 90vh;
     background: white;
     border:3px solid black;
 }
 .task{
+    padding: 1vh;
+    margin-top: 1vh;
     display: flex;
     flex-direction: column;
     padding: 1vw;
@@ -83,12 +87,17 @@ textarea {
 .task>div:first-child{
     display: flex;
     align-items: center;
+    justify-content: space-between;
 }
 .task>div:first-child>div{
     padding-left: 1rem;
     cursor: pointer;
 }
-.task>div:first-child>div:hover{
+.task>div:first-child>div:nth-child(2)>div:first-child{
+    margin-right: 1vw;
+}
+.task>div:first-child>div:nth-child(2)>div:first-child:hover,
+.task>div:first-child>div:nth-child(2)>div:nth-child(2):hover{
     color: slategray;
 }
 .line-throw{

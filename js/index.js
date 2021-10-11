@@ -16,10 +16,11 @@ if (!localStorage.getItem("id")) {
 const tasksStorage = JSON.parse(localStorage.getItem("tasks"))
 let taskToDelete;
 
-function displayAllTasks(){
-    for (const singleTask of tasksStorage){
-        buildTaskHtml(singleTask)
+function displayAllTasks() {
+    for (const singleTask of tasksStorage) {
+        buildTaskHtml(singleTask, false)
     }
+    sortTasks()
 }
 
 function dateLegalisation() {
@@ -63,7 +64,7 @@ function checkEndDate() {//set date min to be as start date and if clicked on en
         if (startBiggerThanEnd) {
             startBiggerThanEnd = false
             endDate.value = this.value
-            lineRed(endDate)
+            line(endDate, "red")
         }
     }
 }
@@ -88,8 +89,8 @@ function createObjectFromForm() {
         taskName: taskName.value,
         startDate: startDate.value,
     }
-    if(startTime.value){
-        obj.startTime=startTime.value
+    if (startTime.value) {
+        obj.startTime = startTime.value
     }
     if (deatils.value) {
         obj.deatils = deatils.value
@@ -102,93 +103,121 @@ function createObjectFromForm() {
     }
     return obj;
 }
-function addTaskToContainer(obj){//object is the task object
+
+function addTaskToContainer(obj) {//object is the task object
     buildTaskHtml(obj)
 }
+
 function checkInputValidation() {
-    if (taskName.value.length === 0 || startDate.value.length === 0 ) {
-        lineRed(taskName.value.length === 0 ? taskName : startDate.value.length === 0)
+    if (taskName.value.length === 0 || startDate.value.length === 0) {
+        line(taskName.value.length === 0 ? (taskName, red) : (startDate, "red"))
         return false
     }
     return true;
 }
 
-function updateLocalStorage(addId=true) {
-    if(addId){
+function updateLocalStorage(addId = true) {
+    if (addId) {
         localStorage.setItem("id", Number(localStorage.getItem("id")) + 1)
     }
     localStorage.setItem("tasks", JSON.stringify(tasksStorage))
 }
 
-async function lineRed(elem) {
-    elem.style.border = "2px solid red"
+async function line(elem, color) {
+    elem.style.outline = `3px solid ${color}`
     await new Promise((res, rej) => {
         setTimeout(() => {
-            elem.style.border = "1px solid black"
+            elem.style.outline = "1px solid black"
             res()
         }, 1600);
     })
 }
 
-function buildTaskHtml(obj) {
+function buildTaskHtml(obj, order = true) {
 
     const div = document.createElement("div"),
         h2 = document.createElement("h2"),
-        h3startTime=document.createElement("h3"),
-        taskNameDiv=document.createElement("div"),
-        otherDiv=document.createElement("div"),
-        active=document.createElement("div"),
-        deleteTask=document.createElement("div")
-        arr=[];
-        
-    h2.innerText="Task name: "+obj.taskName
-    deleteTask.innerHTML=`<i class="fas fa-trash-alt"></i>`
-    active.innerHTML=`<i class="far fa-check-circle"></i>`
-    active.addEventListener("click",missionDone)
-    deleteTask.addEventListener("click",function (){
-        taskToDelete=obj;
+        taskNameDiv = document.createElement("div"),
+        otherDiv = document.createElement("div"),
+        active = document.createElement("div"),
+        deleteTask = document.createElement("div"),
+        deleteActiveDiv=document.createElement("div"),
+        arr = [];
+
+    h2.innerText = "Task name: " + obj.taskName
+
+    deleteTask.innerHTML = `<i class="fas fa-trash-alt"></i>`
+    active.innerHTML = `<i class="far fa-check-circle"></i>`
+    deleteActiveDiv.append(active,deleteTask)
+    deleteActiveDiv.style.display="flex"
+    active.addEventListener("click", missionDone)
+    deleteTask.addEventListener("click", function () {
+        taskToDelete = obj;
         deleteThisTask(this)
     })
-    taskNameDiv.append(h2,active,deleteTask)
-    
-    div.classList.add("task")
 
+    taskNameDiv.append(h2, deleteActiveDiv)
 
     if (obj.deatils) {
-        arr.push(createSingleElemenet("h3",("details: "+obj.deatils)))
+        arr.push(createSingleElemenet("h3", ("details: " + obj.deatils)))
     }
     if (obj.startTime) {
-        arr.push(createSingleElemenet("h3",("Start Time: "+obj.startTime)))
+        arr.push(createSingleElemenet("h3", ("Start Time: " + obj.startTime)))
     }
 
-    arr.push(createSingleElemenet("h3",("Start Date: "+obj.startDate)))
+    arr.push(createSingleElemenet("h3", ("Start Date: " + obj.startDate)))
 
 
     if (obj.endDate) {
-        arr.push(createSingleElemenet("h3",("End Date: "+obj.endDate)))
+        arr.push(createSingleElemenet("h3", ("End Date: " + obj.endDate)))
     }
     if (obj.endtime) {
-        arr.push(createSingleElemenet("h3",("End Time:"+obj.endtime)))
+        arr.push(createSingleElemenet("h3", ("End Time:" + obj.endtime)))
     }
+
     otherDiv.append(...arr)
-    div.append(taskNameDiv,otherDiv)
+    div.classList.add("task")
+    div.append(taskNameDiv, otherDiv)
     tasks.append(div)
+    div.dataset.id = obj.id
+
+    if (order) {
+        sortTasks()
+        line(div, "green")
+    }
+
 }
 
-function missionDone(){
-    this.innerHTML=this.innerHTML==`<i class="fas fa-check-circle" aria-hidden="true"></i>`?`<i class="far fa-check-circle"></i>`:`<i class="fas fa-check-circle"></i>`
+function sortTasks() {
+    tasksStorage.sort((a, b) => {
+        if (b.startDate > a.startDate) {
+            return 1
+        }
+        return -1
+    })
+
+    let len = tasksStorage.length;
+    tasksStorage.map(val => {
+        const item = document.querySelector(`[data-id="${val.id}"]`);
+        item.style.order = len;
+        len--;
+    })
+}
+
+function missionDone() {
+    this.innerHTML = this.innerHTML == `<i class="fas fa-check-circle" aria-hidden="true"></i>` ? `<i class="far fa-check-circle"></i>` : `<i class="fas fa-check-circle"></i>`
     this.parentElement.parentElement.classList.toggle("line-throw")
 }
 
-function deleteThisTask(item){
+function deleteThisTask(item) {
     item.parentElement.parentElement.remove()
-    tasksStorage.splice(tasksStorage.indexOf(taskToDelete),1)
+    tasksStorage.splice(tasksStorage.indexOf(taskToDelete), 1)
     updateLocalStorage(false)
 }
 
-function createSingleElemenet(type,text){
-    const elem=document.createElement(type)
-    elem.innerText=text
+function createSingleElemenet(type, text) {
+    const elem = document.createElement(type)
+    elem.innerText = text
     return elem
 }
 displayAllTasks()
@@ -196,5 +225,3 @@ dateLegalisation()
 addListners()
 
 
-
-// localStorage.setItem("id",Number(localStorage.getItem("id"))+1)
