@@ -181,4 +181,8 @@ textarea {
     .task-container-change{
         top: 30vmin;
     }
+    .task{
+        font-size: .8rem !important;
+        background: yellow;
+    }
 }
